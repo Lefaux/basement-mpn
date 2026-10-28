@@ -1,0 +1,2 @@
+{% extends 'base.html.twig' %}
+{% block body %}<header><a href="{{ path('board') }}" class="brand">Music overview</a><nav><a href="{{ path('inconsistencies') }}">Inconsistencies</a><a href="{{ path('archive') }}" class="active">Archive</a></nav></header><main><h1>Archive</h1>{% for track in tracks %}{% include 'partials/track_card.html.twig' with {track: track} %}{% else %}<p>No archived projects.</p>{% endfor %}</main>{% endblock %}

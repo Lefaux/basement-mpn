@@ -1,0 +1,72 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - AGENTS.md
+      - '**/*.md'
+      - docs/**
+  workflow_dispatch:
+
+env:
+  APP_ENV: prod
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+  DEPLOY_REMOTE_USER: ${{ secrets.DEPLOY_REMOTE_USER }}
+  DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+  DEPLOY_PHP_BIN: ${{ secrets.DEPLOY_PHP_BIN }}
+  OPCACHE_FCGI: ${{ secrets.OPCACHE_FCGI }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
+
+      - name: Install importmap vendor assets
+        run: php bin/console importmap:install
+
+      - name: Install Symfony assets
+        run: php bin/console assets:install --no-interaction --symlink --relative
+
+      - name: Compile asset mapper
+        run: php bin/console asset-map:compile
+
+      - name: Add SSH key and config
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/basement_mpn_deploy
+          chmod 600 ~/.ssh/basement_mpn_deploy
+          cat >> ~/.ssh/config <<SSHCONF
+          Host ${DEPLOY_HOST}
+            User ${DEPLOY_REMOTE_USER}
+            IdentityFile ~/.ssh/basement_mpn_deploy
+            IdentitiesOnly yes
+          SSHCONF
+          chmod 600 ~/.ssh/config
+
+      - name: Add known hosts
+        run: |
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Download Deployer
+        run: |
+          curl -sSLo deployer.phar https://deployer.org/deployer.phar
+          php deployer.phar --version
+
+      - name: Deploy to live
+        run: php deployer.phar deploy --hosts="${DEPLOY_HOST}" -vvv
