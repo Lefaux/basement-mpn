@@ -45,7 +45,8 @@ final class TrackClassifier
                 $mstr[] = $entry;
                 $files['mstr'][] = $entry;
             } else {
-                $isPreview = $extension === 'wav' ? $entry['size'] < 20_000_000 : $entry['size'] < 5_000_000;
+                $isPreview = str_ends_with($normalStem, '_prv')
+                    || ($extension === 'wav' ? $entry['size'] < 20_000_000 : $entry['size'] < 5_000_000);
                 if ($isPreview) {
                     $previews[] = $entry;
                 } else {
@@ -56,7 +57,9 @@ final class TrackClassifier
         }
 
         foreach (array_merge($previews, $renders) as $render) {
-            if (!isset($als[strtolower(pathinfo($render['name'], PATHINFO_FILENAME))])) {
+            $renderStem = strtolower(pathinfo($render['name'], PATHINFO_FILENAME));
+            if (str_ends_with($renderStem, '_prv')) $renderStem = substr($renderStem, 0, -4);
+            if (!isset($als[$renderStem])) {
                 $issues[] = 'Unmatched Render';
                 break;
             }
