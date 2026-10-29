@@ -31,7 +31,7 @@ final class TrackClassifier
                 $files['als'][] = $entry;
                 continue;
             }
-            if (!in_array($extension, self::AUDIO_EXTENSIONS, true)) {
+            if (!in_array($extension, self::AUDIO_EXTENSIONS, true) && $extension !== 'aif') {
                 continue;
             }
 
@@ -39,12 +39,14 @@ final class TrackClassifier
             $isLandr = str_starts_with($normalStem, 'landr');
             $isMstr = str_ends_with($normalStem, '_mstr');
             if ($isLandr) {
+                if ($extension === 'aif') continue;
                 $landr[] = $entry;
                 $files['landr'][] = $entry;
             } elseif ($isMstr) {
                 $mstr[] = $entry;
                 $files['mstr'][] = $entry;
             } else {
+                if ($extension === 'aif') continue;
                 $isPreview = str_ends_with($normalStem, '_prv')
                     || ($extension === 'wav' ? $entry['size'] < 20_000_000 : $entry['size'] < 5_000_000);
                 if ($isPreview) {
