@@ -223,6 +223,40 @@ final class DashboardController extends AbstractController
         return $this->render('missing_master.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
     }
 
+    #[Route('/ready-to-release', name: 'ready_to_release')]
+    public function readyToRelease(Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$request->getSession()->get('music_authenticated')) return $this->redirectToRoute('login');
+
+        $artist = trim((string) $request->query->get('artist', ''));
+        $all = $em->getRepository(Track::class)->findBy(['archived' => false], ['artist' => 'ASC', 'title' => 'ASC']);
+        $tracks = array_values(array_filter($all, static function (Track $track): bool {
+            if (!$track->isCleanLayout() || $track->getIssues() !== []) return false;
+            return ($track->getFiles()['mstr'] ?? []) !== [];
+        }));
+
+        $artistCounts = [];
+        foreach ($tracks as $track) {
+            $name = $track->getArtist() ?? 'Unknown artist';
+            $artistCounts[$name] = ($artistCounts[$name] ?? 0) + 1;
+        }
+        $artists = array_keys($artistCounts);
+        sort($artists);
+
+        $columns = [];
+        foreach ($tracks as $track) {
+            if ($artist !== '' && $track->getArtist() !== $artist) continue;
+            $name = $track->getArtist() ?? 'Unknown artist';
+            $columns[$name][] = $track;
+        }
+        ksort($columns);
+
+        $inconsistentCount = count(array_filter($all, static fn(Track $track): bool => !$track->isCleanLayout() || $track->getIssues() !== []));
+        $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
+
+        return $this->render('ready_to_release.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
+    }
+
     #[Route('/archive', name: 'archive')]
     public function archive(Request $request, EntityManagerInterface $em): Response
     {
