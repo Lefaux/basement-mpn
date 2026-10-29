@@ -12,7 +12,8 @@
 - The "Missing LANDR" navigation view lists clean tracks that have at least one render and neither a LANDR file nor an `_MSTR` final; previews are optional. It is grouped into artist columns and has the main artist filter.
 - The "Missing Master" navigation view lists clean tracks that have at least one LANDR file and no `_MSTR` final; previews and renders are optional. It is grouped into artist columns and has the main artist filter.
 - The "Ready to release" navigation view lists clean tracks with at least one `_MSTR` final; previews, renders, and LANDR files are optional. It is grouped into artist columns and has the main artist filter.
-- The primary navigation uses the Basement MPN wide logo as the Overview link. All non-Overview links are bold, use `#b6d433` when active, and show their current track count.
+- The primary navigation uses the Basement MPN wide logo and an explicit Overview menu item to link to the Overview. All non-Overview links are bold, use `#b6d433` when active, show their current track count, and are hidden when that count is zero.
+- Deferred audio playback: replace the Google Drive preview iframe with an authenticated Symfony streaming endpoint and one global native `<audio>` player. The endpoint must only stream indexed WAV/MP3 Drive file IDs, download through the service account with `alt=media`, and forward HTTP range semantics (`Range`, `206`, `Content-Range`, `Accept-Ranges`, `Content-Length`) for seeking without buffering full files in PHP. This avoids Google Drive iframe/CSP failures; account for hosting bandwidth when implementing it.
 
 This is a Symfony project. Check `composer.json` for the exact Symfony/PHP version
 in use, and read `symfony.lock` to see which recipes ran. Don't assume Doctrine,
