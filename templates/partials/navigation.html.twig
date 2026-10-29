@@ -1,0 +1,13 @@
+<header>
+    <a href="{{ path('board') }}" class="brand" aria-label="Overview">
+        <img src="{{ asset('images/logo-wide-65.png') }}" alt="Basement MPN">
+    </a>
+    <nav>
+        <a href="{{ path('missing_previews') }}" {{ activeNavigation == 'missing_previews' ? 'class="active"' }}>Missing Previews <b>{{ navigationCounts.missingPreviews }}</b></a>
+        <a href="{{ path('missing_landr') }}" {{ activeNavigation == 'missing_landr' ? 'class="active"' }}>Missing LANDR <b>{{ navigationCounts.missingLandr }}</b></a>
+        <a href="{{ path('missing_master') }}" {{ activeNavigation == 'missing_master' ? 'class="active"' }}>Missing Master <b>{{ navigationCounts.missingMaster }}</b></a>
+        <a href="{{ path('ready_to_release') }}" {{ activeNavigation == 'ready_to_release' ? 'class="active"' }}>Ready to release <b>{{ navigationCounts.readyToRelease }}</b></a>
+        <a href="{{ path('inconsistencies') }}" {{ activeNavigation == 'inconsistencies' ? 'class="active"' }}>Inconsistencies <b>{{ navigationCounts.inconsistencies }}</b></a>
+    </nav>
+    <form method="post" action="{{ path('logout') }}"><button class="link">Log out</button></form>
+</header>

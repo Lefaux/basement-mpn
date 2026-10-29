@@ -3,17 +3,7 @@
 {% block title %}Ready to release · Music overview{% endblock %}
 
 {% block body %}
-    <header>
-        <a href="{{ path('board') }}" class="brand">Music overview</a>
-        <nav>
-            <a href="{{ path('missing_previews') }}">Missing Previews</a>
-            <a href="{{ path('missing_landr') }}">Missing LANDR</a>
-            <a href="{{ path('missing_master') }}">Missing Master</a>
-            <a href="{{ path('ready_to_release') }}" class="active">Ready to release</a>
-            <a href="{{ path('inconsistencies') }}">Inconsistencies <b>{{ inconsistentCount }}</b></a>
-        </nav>
-        <form method="post" action="{{ path('logout') }}"><button class="link">Log out</button></form>
-    </header>
+    {% include 'partials/navigation.html.twig' with {activeNavigation: 'ready_to_release'} %}
     <main>
         <div class="toolbar">
             <form method="get">

@@ -84,16 +84,18 @@ final class DashboardController extends AbstractController
         $artistCounts = [];
         foreach ($boardTracks as $track) $artistCounts[$track->getArtist()] = ($artistCounts[$track->getArtist()] ?? 0) + 1;
         $artists = array_keys($artistCounts); sort($artists);
-        $inconsistentCount = count(array_filter($all, static fn(Track $t): bool => !$t->isCleanLayout() || $t->getIssues() !== []));
+        $navigationCounts = $this->navigationCounts($all);
+        $inconsistentCount = $navigationCounts['inconsistencies'];
         $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
-        return $this->render('board.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'fileFilters', 'mainFilterCounts', 'inconsistentCount', 'lastRun'));
+        return $this->render('board.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'fileFilters', 'mainFilterCounts', 'navigationCounts', 'inconsistentCount', 'lastRun'));
     }
 
     #[Route('/inconsistencies', name: 'inconsistencies')]
     public function inconsistencies(Request $request, EntityManagerInterface $em): Response
     {
         if (!$request->getSession()->get('music_authenticated')) return $this->redirectToRoute('login');
-        $tracks = array_values(array_filter($em->getRepository(Track::class)->findBy(['archived' => false], ['driveModifiedAt' => 'DESC']), static fn(Track $t): bool => !$t->isCleanLayout() || $t->getIssues() !== []));
+        $all = $em->getRepository(Track::class)->findBy(['archived' => false], ['driveModifiedAt' => 'DESC']);
+        $tracks = array_values(array_filter($all, static fn(Track $t): bool => !$t->isCleanLayout() || $t->getIssues() !== []));
         $issueTypes = [];
         foreach ($tracks as $track) $issueTypes = [...$issueTypes, ...$track->getIssues()];
         $issueTypes = array_values(array_unique($issueTypes)); sort($issueTypes);
@@ -110,7 +112,8 @@ final class DashboardController extends AbstractController
             $filterRoots[$root] = ($filterRoots[$root] ?? 0) + 1;
         }
         ksort($filterArtists); ksort($filterRoots);
-        return $this->render('inconsistencies.html.twig', compact('tracks', 'issueTypes', 'issueCounts', 'filterMeta', 'filterArtists', 'filterStages', 'filterRoots'));
+        $navigationCounts = $this->navigationCounts($all);
+        return $this->render('inconsistencies.html.twig', compact('tracks', 'issueTypes', 'issueCounts', 'filterMeta', 'filterArtists', 'filterStages', 'filterRoots', 'navigationCounts'));
     }
 
     #[Route('/missing-previews', name: 'missing_previews')]
@@ -145,10 +148,11 @@ final class DashboardController extends AbstractController
         }
         ksort($columns);
 
-        $inconsistentCount = count(array_filter($all, static fn(Track $track): bool => !$track->isCleanLayout() || $track->getIssues() !== []));
+        $navigationCounts = $this->navigationCounts($all);
+        $inconsistentCount = $navigationCounts['inconsistencies'];
         $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
 
-        return $this->render('missing_previews.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
+        return $this->render('missing_previews.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'navigationCounts', 'inconsistentCount', 'lastRun'));
     }
 
     #[Route('/missing-landr', name: 'missing_landr')]
@@ -182,10 +186,11 @@ final class DashboardController extends AbstractController
         }
         ksort($columns);
 
-        $inconsistentCount = count(array_filter($all, static fn(Track $track): bool => !$track->isCleanLayout() || $track->getIssues() !== []));
+        $navigationCounts = $this->navigationCounts($all);
+        $inconsistentCount = $navigationCounts['inconsistencies'];
         $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
 
-        return $this->render('missing_landr.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
+        return $this->render('missing_landr.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'navigationCounts', 'inconsistentCount', 'lastRun'));
     }
 
     #[Route('/missing-master', name: 'missing_master')]
@@ -217,10 +222,11 @@ final class DashboardController extends AbstractController
         }
         ksort($columns);
 
-        $inconsistentCount = count(array_filter($all, static fn(Track $track): bool => !$track->isCleanLayout() || $track->getIssues() !== []));
+        $navigationCounts = $this->navigationCounts($all);
+        $inconsistentCount = $navigationCounts['inconsistencies'];
         $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
 
-        return $this->render('missing_master.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
+        return $this->render('missing_master.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'navigationCounts', 'inconsistentCount', 'lastRun'));
     }
 
     #[Route('/ready-to-release', name: 'ready_to_release')]
@@ -251,10 +257,11 @@ final class DashboardController extends AbstractController
         }
         ksort($columns);
 
-        $inconsistentCount = count(array_filter($all, static fn(Track $track): bool => !$track->isCleanLayout() || $track->getIssues() !== []));
+        $navigationCounts = $this->navigationCounts($all);
+        $inconsistentCount = $navigationCounts['inconsistencies'];
         $lastRun = $em->getRepository(ScanState::class)->findOneBy([])?->getLastAttemptAt();
 
-        return $this->render('ready_to_release.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'inconsistentCount', 'lastRun'));
+        return $this->render('ready_to_release.html.twig', compact('columns', 'artists', 'artistCounts', 'artist', 'navigationCounts', 'inconsistentCount', 'lastRun'));
     }
 
     #[Route('/archive', name: 'archive')]
@@ -262,6 +269,28 @@ final class DashboardController extends AbstractController
     {
         if (!$request->getSession()->get('music_authenticated')) return $this->redirectToRoute('login');
         return $this->render('archive.html.twig', ['tracks' => $em->getRepository(Track::class)->findBy(['archived' => true], ['updatedAt' => 'DESC'])]);
+    }
+
+    /** @param list<Track> $tracks */
+    private function navigationCounts(array $tracks): array
+    {
+        $counts = ['missingPreviews' => 0, 'missingLandr' => 0, 'missingMaster' => 0, 'readyToRelease' => 0, 'inconsistencies' => 0];
+        foreach ($tracks as $track) {
+            if (!$track->isCleanLayout() || $track->getIssues() !== []) {
+                ++$counts['inconsistencies'];
+                continue;
+            }
+            $files = $track->getFiles();
+            $hasPreview = ($files['previews'] ?? []) !== [];
+            $hasRender = ($files['renders'] ?? []) !== [];
+            $hasLandr = ($files['landr'] ?? []) !== [];
+            $hasMaster = ($files['mstr'] ?? []) !== [];
+            if (!$hasPreview && !$hasRender && !$hasLandr && !$hasMaster) ++$counts['missingPreviews'];
+            if ($hasRender && !$hasLandr && !$hasMaster) ++$counts['missingLandr'];
+            if ($hasLandr && !$hasMaster) ++$counts['missingMaster'];
+            if ($hasMaster) ++$counts['readyToRelease'];
+        }
+        return $counts;
     }
 
     #[Route('/track/{id}/archive', name: 'track_archive', methods: ['POST'])]
