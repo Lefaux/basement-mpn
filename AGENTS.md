@@ -10,6 +10,7 @@
 - WAV/MP3 files with a case-insensitive `_PRV` basename suffix are previews regardless of size; the suffix is ignored when matching a preview to an `.als` basename. Existing size-based preview rules remain in effect.
 - The "Missing Previews" navigation view lists clean tracks with no previews, renders, LANDR masters, or `_MSTR` finals, grouped into artist columns and with the main artist filter.
 - The "Missing LANDR" navigation view lists clean tracks that have at least one render and neither a LANDR file nor an `_MSTR` final; previews are optional. It is grouped into artist columns and has the main artist filter.
+- The "Missing Master" navigation view lists clean tracks that have at least one LANDR file and no `_MSTR` final; previews and renders are optional. It is grouped into artist columns and has the main artist filter.
 
 This is a Symfony project. Check `composer.json` for the exact Symfony/PHP version
 in use, and read `symfony.lock` to see which recipes ran. Don't assume Doctrine,
