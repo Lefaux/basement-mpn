@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Missing LANDR · Music overview{% endblock %}
+
+{% block body %}
+    <header>
+        <a href="{{ path('board') }}" class="brand">Music overview</a>
+        <nav>
+            <a href="{{ path('missing_previews') }}">Missing Previews</a>
+            <a href="{{ path('missing_landr') }}" class="active">Missing LANDR</a>
+            <a href="{{ path('inconsistencies') }}">Inconsistencies <b>{{ inconsistentCount }}</b></a>
+        </nav>
+        <form method="post" action="{{ path('logout') }}"><button class="link">Log out</button></form>
+    </header>
+    <main>
+        <div class="toolbar">
+            <form method="get">
+                <label>Artist
+                    <select name="artist" onchange="this.form.submit()">
+                        <option value="">All artists</option>
+                        {% for option in artists %}
+                            <option value="{{ option }}" {{ artist == option ? 'selected' }}>{{ option }} ({{ artistCounts[option] }})</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </form>
+        </div>
+        <section class="board artist-columns">
+            {% for artistName, tracks in columns %}
+                <div class="column">
+                    <h2>{{ artistName }} ({{ tracks|length }})</h2>
+                    {% for track in tracks %}
+                        {% include 'partials/track_card.html.twig' with {track: track} %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty">No clean tracks are waiting for LANDR mastering.</p>
+            {% endfor %}
+        </section>
+    </main>
+    <footer>Last run: {{ lastRun ? lastRun|date('Y-m-d H:i') : 'Not yet run' }}</footer>
+{% endblock %}
