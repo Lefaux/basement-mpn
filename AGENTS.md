@@ -8,6 +8,7 @@
 - Within an artist folder, a project named after another artist is valid when its name explicitly credits the parent artist as an `Edit` or `Remix`, with or without parentheses (for example, `David Bowie - Lets Dance - DJ Lefaux Edit Project`).
 - Main-board file filters show the number of currently displayed (artist-filtered) tracks matching each filter, are combined with AND logic, and persist as `file_filter[]` GET parameters.
 - WAV/MP3 files with a case-insensitive `_PRV` basename suffix are previews regardless of size; the suffix is ignored when matching a preview to an `.als` basename. Existing size-based preview rules remain in effect.
+- The "Missing Previews" navigation view lists clean tracks with no previews, renders, LANDR masters, or `_MSTR` finals, grouped into artist columns and with the main artist filter.
 
 This is a Symfony project. Check `composer.json` for the exact Symfony/PHP version
 in use, and read `symfony.lock` to see which recipes ran. Don't assume Doctrine,
